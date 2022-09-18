@@ -4,34 +4,40 @@ import csv
 
 
 class HashHashBaby:
-    def __init__(self, initial_capacity=20):
+    def __init__(self, initial_capacity=64):
         self.table = []
         for i in range(initial_capacity):
             self.table.append([])
 
-    def insert(self, item):
-        bucket = hash(item) % len(self.table)
+    def insert(self, key, item):
+        bucket = hash(key) % len(self.table)
         bucket_list = self.table[bucket]
 
-        bucket_list.append(item)
+        for kv in bucket_list:
+            if kv[0] == key:
+                kv[1] = item
+                return True
+
+        key_value = [key, item]
+        bucket_list.append(key_value)
+        return True
 
     def search(self, key):
         bucket = hash(key) % len(self.table)
         bucket_list = self.table[bucket]
 
-        if key in bucket_list:
-            item_index = bucket_list.index(key)
-            return bucket_list[item_index]
-        else:
-            print('Item is not found')
-            return None
+        # for kv in bucket_list:
+        #   if kv[0] == key:
+        #      return kv[1]
+        # return None
 
     def remove(self, key):
         bucket = hash(key) % len(self.table)
         bucket_list = self.table[bucket]
 
-        if key in bucket_list:
-            bucket_list.remove(key)
+        for kv in bucket_list:
+            if kv[0] == key:
+                bucket_list.remove([kv[0], kv[1]])
 
 
 class Package:
@@ -53,9 +59,8 @@ class Package:
 def load_packages(filename):
     with open(filename) as packages:
         package_data = csv.reader(packages, delimiter=',')
-        next(package_data)
         for package in package_data:
-            p_id = int(package[0])
+            p_id = package[0]
             p_address = package[1]
             p_city = package[2]
             p_state = package[3]
@@ -64,11 +69,14 @@ def load_packages(filename):
             p_weight = package[6]
             p_status = "Loaded"
 
-            package = Package(p_id, p_address, p_city, p_state, p_zip, p_deadline, p_weight, p_status)
+            p = Package(p_id, p_address, p_city, p_state, p_zip, p_deadline, p_weight, p_status)
 
-            myHash.insert(p_id, package)
+            myHash.insert(p_id, p)
 
 
 myHash = HashHashBaby()
 
 load_packages('packages.csv')
+
+for k in range(len(myHash.table)):
+    print("Package: {}".format(myHash.search(k)))
