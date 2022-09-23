@@ -1,6 +1,7 @@
 # Mark Wilson
 # Student ID:  010314264
 import csv
+import datetime
 
 
 class HashMap:
@@ -57,28 +58,6 @@ class Package:
                                                    self.zip_code, self.deadline, self.weight, self.status)
 
 
-class Truck:
-
-    def __init__(self):
-        self.payload = dict()
-        self.speed = 18
-
-    def load(self):
-        pass
-
-    def unload(self):
-        pass
-
-    def set_driver(self, driver):
-        pass
-
-
-class Driver:
-
-    def __init__(self):
-        self.isDriving = False
-
-
 def load_packages(filename):
     with open(filename, encoding="utf-8") as packages:
         package_data = csv.reader(packages, delimiter=',')
@@ -96,11 +75,27 @@ def load_packages(filename):
 
             p = Package(p_id, p_address, p_city, p_state, p_zip, p_deadline, p_weight, p_notes, p_status)
 
+            if p.package_id in {1, 2, 13, 14, 15, 16, 20, 21, 27, 34, 35, 39, 40}:
+                truck_1.append(p)
+
+            if p.package_id in {3, 5, 6, 7, 8, 12, 18, 25, 26, 29, 30, 31, 32, 36, 37, 38}:
+                truck_2.append(p)
+
+            if p.package_id in {4, 9, 10, 11, 17, 19, 22, 23, 24, 28, 33}:
+                truck_3.append(p)
+
             packageHash.insert(p_id, p)
 
 
 packageHash = HashMap()
 
+truck_1 = []
+truck_2 = []
+truck_3 = []
+
 load_packages('packages.csv')
 
 print(packageHash.search(30))
+
+print(truck_1)
+
