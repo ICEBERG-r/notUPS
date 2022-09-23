@@ -1,0 +1,6 @@
+Hash - DONE (for now, might need to adjust for ORIGINALITY later, i dunno maybe use linked lists instead of chaining or something)
+Package loading from CSV - DONE
+Load packages onto trucks - already manually separated on loaded_trucks.xls (should trucks be their own class or would just a dict do? Should probably be a class for scalability, but also KISS re: this project)
+set up graph w/ vertices (addresses and distances between)
+incorporate distance table (from csv?)
+Deliver packages - Develop system for timetracking trucks using builtin datetime library
