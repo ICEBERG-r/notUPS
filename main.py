@@ -57,6 +57,34 @@ class Package:
         return "%s, %s, %s, %s, %s, %s, %s, %s" % (self.package_id, self.address, self.city, self.state,
                                                    self.zip_code, self.deadline, self.weight, self.status)
 
+    def __repr__(self):
+        return str(self)
+
+
+class Vertex:
+    def __init__(self, loc_id, label):
+        self.loc_id = loc_id
+        self.label = label
+        self.distance = float('inf')
+        self.pred_vertex = None
+
+
+class Graph:
+    def __init__(self):
+        self.adjacency_list = {}
+        self.edge_weights = {}
+
+    def add_vertex(self, new_vertex):
+        self.adjacency_list[new_vertex]
+
+    def add_directed_edge(self, from_vertex, to_vertex, weight=1.0):
+        self.edge_weights[(from_vertex, to_vertex)] = weight
+        self.adjacency_list[from_vertex].append(to_vertex)
+
+    def add_undirected_edge(self, vertex_a, vertex_b, weight=1.0):
+        self.add_directed_edge(vertex_a, vertex_b, weight)
+        self.add_directed_edge(vertex_b, vertex_a, weight)
+
 
 def load_packages(filename):
     with open(filename, encoding="utf-8") as packages:
@@ -87,15 +115,74 @@ def load_packages(filename):
             packageHash.insert(p_id, p)
 
 
+def load_addresses(filename):
+    with open(filename, encoding='utf-8-sig') as addresses:
+        address_data = csv.reader(addresses, delimiter=',')
+        for address in address_data:
+            loc_id = int(address[0])
+            loc_address = address[1]
+
+            address_lookup[loc_address] = loc_id
+
+
+def dijkstra(g, start_vertex):
+    unvisited = []
+    for current_vertex in g.adjacency_list:
+        unvisited.append(current_vertex)
+
+    start_vertex.distance = 0
+
+    while len(unvisited) > 0:
+        min_index = 0
+        for i in range(1, len(unvisited)):
+            if unvisited[i].distance < unvisited[min_index].distance:
+                min_index = i
+        current_vertex = unvisited.pop(min_index)
+
+        for adj_vertex in g.adjacency_list[current_vertex]:
+            edge_weight = g.edge_weights[(current_vertex, adj_vertex)]
+            alt_path_distance = current_vertex.distance + edge_weight
+
+            if alt_path_distance < adj_vertex.distance:
+                adj_vertex.distance = alt_path_distance
+                adj_vertex.pred_vertex = current_vertex
+
+
+def get_shortest_path(start_vertex, end_vertex):
+    path = ""
+    current_vertex = end_vertex
+    while current_vertex is not start_vertex:
+        path = " -> " + str(current_vertex.label) + path
+        current_vertex = current_vertex.pred_vertex
+    path = start_vertex.label + path
+    return path
+
+
 packageHash = HashMap()
 
-truck_1 = []
+truck_1 = []   # move these inside method?
 truck_2 = []
 truck_3 = []
 
+g = Graph()
+
+address_lookup = {}
+
 load_packages('packages.csv')
+load_addresses('address_vertex.csv')
+
+
+distance_table = list(csv.reader(open('distance.csv')))
+print(float(distance_table[7][3]))
+
 
 print(packageHash.search(30))
 
 print(truck_1)
+print(truck_2)
+print(truck_3)
 
+# This is how you can convert a float to a time
+x = 3.6
+
+print(str(datetime.timedelta(hours=x))[:-3])
