@@ -4,6 +4,7 @@ import csv
 import datetime
 
 
+# Hash-map - copied from lecture, may need to add functions or make more original
 class HashMap:
     def __init__(self, initial_capacity=10):
         self.table = []
@@ -55,7 +56,7 @@ class Package:
 
     def __str__(self):
         return "%s, %s, %s, %s, %s, %s, %s, %s" % (self.package_id, self.address, self.city, self.state,
-                                                   self.zip_code, self.deadline, self.weight, self.status)
+                                                       self.zip_code, self.deadline, self.weight, self.status)
 
     def __repr__(self):
         return str(self)
@@ -121,40 +122,44 @@ def get_total_mileage():
     return total_mileage
 
 
-class Main:
-    print('Welcome to WGUPS package tracking')
-    print('All deliveries were completed in ', "{0:.2f}".format(get_total_mileage(), 2), 'miles.')
-    print('Please enter a number from the following menu')
-    start = input('1 - Package lookup \n2 - View status of all packages at a specific time \n0 - exit the program')
-    '''
-    while start != 0:
-        if start == 1:
-            try:
-                p_id = input('Enter the package ID: ')
-    '''
-
-
 packageHash = HashMap()
 
 truck_1 = Truck()
 truck_2 = Truck()
 truck_3 = Truck()
 
+truck_2.start_time = 9.10
+truck_2.start_time = 10.00
+
 address_lookup = {}
-vertex_array = []
+
 distance_table = list(csv.reader(open('distance.csv', encoding='utf-8-sig')))
 
 
 load_packages('packages.csv')
-load_addresses('address_vertex.csv')
+load_addresses('address.csv')
 
 print(truck_1.payload)
 print(truck_2.payload)
 print(truck_3.payload)
 
-print(get_distance(0, 4))
+print(get_distance(address_lookup.get('195 W Oakland Ave'), address_lookup.get('233 Canyon Rd')))
 
+'''
+class Main:
+    def __init__(self):
+        pass
 
+    print('Welcome to WGUPS package tracking')
+    print('All deliveries were completed in ', "{0:.2f}".format(get_total_mileage(), 2), 'miles.')
+    print('Please enter a number from the following menu')
+    start = input('1 - Package lookup \n2 - View status of all packages at a specific time \n0 - exit the program')
+    
+    while start != 0:
+        if start == 1:
+            try:
+                p_id = input('Enter the package ID: ')
+'''
 # This is how you can convert a float to a time
 # x = 3.6
 # print(str(datetime.timedelta(hours=x))[:-3])
