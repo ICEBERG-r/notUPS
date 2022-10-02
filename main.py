@@ -56,7 +56,7 @@ class Package:
 
     def __str__(self):
         return "%s, %s, %s, %s, %s, %s, %s, %s" % (self.package_id, self.address, self.city, self.state,
-                                                       self.zip_code, self.deadline, self.weight, self.status)
+                                                   self.zip_code, self.deadline, self.weight, self.status)
 
     def __repr__(self):
         return str(self)
@@ -68,7 +68,8 @@ class Truck:
         self.payload = []
         self.start_time = 8.0
         self.mileage = 0.0
-        self.distance_set = []
+        self.sorted_payload = []
+        self.current_location = 0
 
 
 def load_packages(filename):
@@ -112,14 +113,28 @@ def load_addresses(filename):
 
 def get_distance(loc_1, loc_2):
     if str(distance_table[loc_1][loc_2]) == '':
-        return distance_table[loc_2][loc_1]
+        return float(distance_table[loc_2][loc_1])
     else:
-        return distance_table[loc_1][loc_2]
+        return float(distance_table[loc_1][loc_2])
 
 
 def get_total_mileage():
     total_mileage = truck_1.mileage + truck_2.mileage + truck_3.mileage
     return total_mileage
+
+
+def deliver_packages(truck):
+    truck.sorted_payload = []
+    truck.current_location = 0
+    shortest_distance = 9000.0
+
+    for p in range(len(truck.payload)):
+        while len(truck.payload) != 0:
+            if get_distance(truck.current_location, address_lookup.get(truck.payload[p].address)) <= shortest_distance:
+                shortest_distance = get_distance(truck.current_location, address_lookup.get(truck.payload[p].address))
+                truck.sorted_payload.append(truck.payload[p])
+                truck.current_location = address_lookup.get(truck.payload[p].address)
+                truck.payload.pop(p)
 
 
 packageHash = HashMap()
@@ -129,7 +144,7 @@ truck_2 = Truck()
 truck_3 = Truck()
 
 truck_2.start_time = 9.10
-truck_2.start_time = 10.00
+truck_3.start_time = 10.00
 
 address_lookup = {}
 
@@ -143,7 +158,8 @@ print(truck_1.payload)
 print(truck_2.payload)
 print(truck_3.payload)
 
-print(get_distance(address_lookup.get('195 W Oakland Ave'), address_lookup.get('233 Canyon Rd')))
+print(address_lookup.get(truck_1.payload[1].address))
+deliver_packages(truck_1)
 
 '''
 class Main:
