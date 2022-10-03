@@ -112,10 +112,16 @@ def load_addresses(filename):
 
 
 def get_distance(loc_1, loc_2):
-    if str(distance_table[loc_1][loc_2]) == '':
-        return float(distance_table[loc_2][loc_1])
-    else:
-        return float(distance_table[loc_1][loc_2])
+    return float(distance_table[int(loc_1)][int(loc_2)])
+
+
+def get_min_distance(_list, location):
+    min_distance = 9000.0
+    for p in range(0, 3):
+        if get_distance(location, address_lookup.get(_list[p])) <= min_distance:
+            min_distance = get_distance(location, address_lookup.get(_list[p]))
+
+    return min_distance
 
 
 def get_total_mileage():
@@ -128,7 +134,7 @@ def deliver_packages(truck):
     truck.current_location = 0
     shortest_distance = 9000.0
 
-    for p in range(len(truck.payload)):
+    for p in range((len(truck.payload)) - 1):
         while len(truck.payload) != 0:
             if get_distance(truck.current_location, address_lookup.get(truck.payload[p].address)) <= shortest_distance:
                 shortest_distance = get_distance(truck.current_location, address_lookup.get(truck.payload[p].address))
@@ -158,8 +164,10 @@ print(truck_1.payload)
 print(truck_2.payload)
 print(truck_3.payload)
 
-print(address_lookup.get(truck_1.payload[1].address))
-deliver_packages(truck_1)
+print(len(truck_1.payload))
+print(address_lookup.get(truck_1.payload[6].address))
+
+print(get_min_distance(truck_1.payload, 1))
 
 '''
 class Main:
