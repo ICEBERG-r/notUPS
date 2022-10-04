@@ -93,10 +93,14 @@ def load_packages(filename):
             p = Package(p_id, p_address, p_city, p_state, p_zip, p_deadline, p_weight, p_notes, p_status,
                         p_time_of_delivery)
 
-            if p.package_id in {1, 2, 13, 14, 15, 16, 20, 21, 27, 34, 35, 39, 40}:
+            if p.package_id == 9:
+                p.address = "410 S State St"
+                p.zip_code = "84111"
+
+            if p.package_id in {1, 2, 8, 13, 14, 15, 16, 20, 21, 27, 30, 34, 35, 39, 40}:
                 truck_1.payload.append(p)
 
-            if p.package_id in {3, 5, 6, 7, 8, 12, 18, 25, 26, 29, 30, 31, 32, 36, 37, 38}:
+            if p.package_id in {3, 5, 6, 7, 12, 18, 25, 26, 29, 31, 32, 36, 37, 38}:
                 truck_2.payload.append(p)
 
             if p.package_id in {4, 9, 10, 11, 17, 19, 22, 23, 24, 28, 33}:
@@ -119,6 +123,14 @@ def get_distance(loc_1, loc_2):
     return float(distance_table[loc_1][loc_2])
 
 
+def convert_float_time_to_hm(time_float):
+    return str(datetime.timedelta(hours=time_float))[:-3]
+
+
+def convert_hm_time_to_float(time_hms):
+    pass
+
+
 def get_min_distance(truck, location):
     min_distance = 9000.0
     for p in range(len(truck.payload)):
@@ -128,6 +140,7 @@ def get_min_distance(truck, location):
     return min_distance
 
 
+'''
 def get_next_package(truck, location):
     min_distance = 9000.0
     package_index = None
@@ -137,8 +150,8 @@ def get_next_package(truck, location):
             package_index = p
 
     return package_index
-
-
+'''
+'''
 def get_next_location(truck, location):
     min_distance = 9000.0
     next_location = 0
@@ -148,6 +161,7 @@ def get_next_location(truck, location):
             next_location = address_lookup.get(truck.payload[p].address)
 
     return next_location
+'''
 
 
 def get_total_mileage():
@@ -157,11 +171,12 @@ def get_total_mileage():
 
 def deliver_packages(truck):
     current_location = 0
-    # set status of all associated packages as 'In Transit' in Hashmap
     while len(truck.payload) != 0:
 
         min_distance = 9000.0
         package_index = None
+        next_location = None
+
         for p in range(len(truck.payload)):
 
             (package_hash.search(truck.payload[p].package_id)).status = 'In Transit'
@@ -169,15 +184,12 @@ def deliver_packages(truck):
                 min_distance = get_distance(current_location, address_lookup.get(truck.payload[p].address))
                 next_location = address_lookup.get(truck.payload[p].address)
                 package_index = p
-                current_location = next_location
 
+        current_location = next_location
         (package_hash.search(truck.payload[package_index].package_id)).status = 'Delivered'
         truck.time += (min_distance/truck.mph)
-        # hashmap package time_of_delivery = truck.time
         (package_hash.search(truck.payload[package_index].package_id)).time_of_delivery = truck.time
         truck.mileage += min_distance
-        # hashmap package status = 'Delivered'
-        print(truck.payload[package_index])
         truck.payload.pop(package_index)
 
     truck.mileage += get_distance(current_location, 0)
@@ -186,14 +198,15 @@ def deliver_packages(truck):
 
 package_hash = HashMap()
 
+address_lookup = {}
+
 truck_1 = Truck()
 truck_2 = Truck()
 truck_3 = Truck()
 
 truck_2.time = 9.10
-truck_3.time = 10.00
+truck_3.time = 10.5
 
-address_lookup = {}
 
 distance_table = list(csv.reader(open('distance.csv', encoding='utf-8-sig')))
 
@@ -204,20 +217,20 @@ load_addresses('address.csv')
 deliver_packages(truck_1)
 deliver_packages(truck_2)
 deliver_packages(truck_3)
+
 print(truck_1.payload)
 print(truck_2.payload)
 print(truck_3.payload)
 
-print(truck_1.time)
-print(truck_2.time)
-print(truck_3.time)
+print(convert_float_time_to_hm(truck_1.time))
+print(convert_float_time_to_hm(truck_2.time))
+print(convert_float_time_to_hm(truck_3.time))
 
 print(get_total_mileage())
 
-for p in range (1, 40):
-    print(package_hash.search(p))
+for i in range(1, 40):
+    print(package_hash.search(i))
 
-print(get_distance(17, 17))
 '''
 class Main:
     def __init__(self):
