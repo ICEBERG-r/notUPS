@@ -214,13 +214,10 @@ distance_table = list(csv.reader(open('distance.csv', encoding='utf-8-sig')))
 load_packages('packages.csv')
 load_addresses('address.csv')
 
+
 deliver_packages(truck_1)
 deliver_packages(truck_2)
 deliver_packages(truck_3)
-
-print(truck_1.payload)
-print(truck_2.payload)
-print(truck_3.payload)
 
 print(convert_float_time_to_hm(truck_1.time))
 print(convert_float_time_to_hm(truck_2.time))
