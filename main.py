@@ -68,13 +68,12 @@ class Truck:
     def __init__(self):
         self.mph = 18.0
         self.payload = []
-        self.time = 8.0
+        self.time = 8.00
         self.mileage = 0.0
-        self.sorted_payload = []
         self.current_location = 0
 
 
-def load_packages(filename):
+def package_csv(filename):
     with open(filename, encoding='utf-8') as packages:
         package_data = csv.reader(packages, delimiter=',')
         next(package_data)
@@ -93,23 +92,10 @@ def load_packages(filename):
             p = Package(p_id, p_address, p_city, p_state, p_zip, p_deadline, p_weight, p_notes, p_status,
                         p_time_of_delivery)
 
-            if p.package_id == 9:
-                p.address = '410 S State St'
-                p.zip_code = '84111'
-
-            if p.package_id in {1, 2, 8, 13, 14, 15, 16, 20, 21, 27, 30, 34, 35, 39, 40}:
-                truck_1.payload.append(p)
-
-            if p.package_id in {3, 5, 6, 7, 12, 18, 25, 26, 29, 31, 32, 36, 37, 38}:
-                truck_2.payload.append(p)
-
-            if p.package_id in {4, 9, 10, 11, 17, 19, 22, 23, 24, 28, 33}:
-                truck_3.payload.append(p)
-
             package_hash.insert(p_id, p)
 
 
-def load_addresses(filename):
+def address_csv(filename):
     with open(filename, encoding='utf-8-sig') as addresses:
         address_data = csv.reader(addresses, delimiter=',')
         for address in address_data:
@@ -117,6 +103,21 @@ def load_addresses(filename):
             loc_address = address[1]
 
             address_lookup[loc_address] = loc_id
+
+
+def update_address(p_id, address, city, state, zip_code):
+    package = package_hash.search(p_id)
+    package.address = address
+    package.city = city
+    package.state = state
+    package.zip_code = zip_code
+
+
+def load_truck(truck, package_ids):
+    for p in range(1, 40):
+
+        if package_hash.search(p).package_id in package_ids:
+            truck.payload.append(package_hash.search(p))
 
 
 def get_distance(loc_1, loc_2):
@@ -182,39 +183,33 @@ truck_1 = Truck()
 truck_2 = Truck()
 truck_3 = Truck()
 
-truck_2.time = 9.10
-truck_3.time = 10.5
+truck_1.time = convert_hm_time_to_float('08:00')
+truck_2.time = convert_hm_time_to_float('09:06')
+truck_3.time = convert_hm_time_to_float('10:30')
 
 
 distance_table = list(csv.reader(open('distance.csv', encoding='utf-8-sig')))
 
 
-load_packages('packages.csv')
-load_addresses('address.csv')
-
-'''
-deliver_packages(truck_1)
-deliver_packages(truck_2)
-deliver_packages(truck_3)
-
-print(convert_float_time_to_hm(truck_1.time))
-print(convert_float_time_to_hm(truck_2.time))
-print(convert_float_time_to_hm(truck_3.time))
-
-print(get_total_mileage())
-
-for i in range(1, 40):
-    print(package_hash.search(i))
-
-'''
+package_csv('packages.csv')
+address_csv('address.csv')
 
 
 class Main:
     def __init__(self):
         pass
 
+    update_address(9, '410 S State St', 'Salt Lake City', 'UT', '84111')
+
+    load_truck(truck_1, {1, 2, 8, 13, 14, 15, 16, 20, 21, 27, 30, 34, 35, 39, 40})
+    load_truck(truck_2, {3, 5, 6, 7, 12, 18, 25, 26, 29, 31, 32, 36, 37, 38})
+    load_truck(truck_3, {4, 9, 10, 11, 17, 19, 22, 23, 24, 28, 33})
+
+    deliver_packages(truck_1)
+    deliver_packages(truck_2)
+    deliver_packages(truck_3)
     start = None
-    
+
     while start != '0':
         print('Welcome to WGUPS package tracking')
         print('All deliveries were completed in ', "{0:.2f}".format(get_total_mileage(), 2), 'miles.')
@@ -223,33 +218,24 @@ class Main:
             '1 - Package lookup \n2 - View status of all packages at a specific time \n0 - exit the program\n\n')
         if start == '1':
             p_id = input('Enter the package ID: ')
-            try:
-                print(package_hash.search(int(p_id)))
-                start = '0'
-            except:
-                print('package not found')
-                exit()
+
+            print(package_hash.search(int(p_id)))
+            exit()
 
         if start == '2':
             time = input('Enter a time in standard military time (HH:MM): ')
-            try:
-                # time mechanism still needs to be developed
-                deliver_packages(truck_1)
-                deliver_packages(truck_2)
-                deliver_packages(truck_3)
+            # time mechanism still needs to be developed
+            deliver_packages(truck_1)
+            deliver_packages(truck_2)
+            deliver_packages(truck_3)
 
-                for i in range(1, 40):
-                    print(package_hash.search(i))
-            except:
-                print('Incorrect format')
-                exit()
+            for i in range(1, 40):
+                print(package_hash.search(i))
 
-        if start not in [1, 2, 0]:
+        if start not in ['1', '2', '0']:
             print('Incorrect selection\n')
-            exit()
 
     print('Goodbye!')
     exit()
-# This is how you can convert a float to a time
-# x = 3.6
-# print(str(datetime.timedelta(hours=x))[:-3])
+
+
