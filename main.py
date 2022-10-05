@@ -219,6 +219,7 @@ deliver_packages(truck_1)
 deliver_packages(truck_2)
 deliver_packages(truck_3)
 
+print("hello") #DELETE THIS
 print(convert_float_time_to_hm(truck_1.time))
 print(convert_float_time_to_hm(truck_2.time))
 print(convert_float_time_to_hm(truck_3.time))
