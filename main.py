@@ -4,11 +4,11 @@ import csv
 import datetime
 
 
-# Hash-map - copied from lecture, may need to add functions or make more original
-class HashMap:
-    def __init__(self, initial_capacity=10):
+# Hash-map - copied from lecture, may need to make more original
+class HashTable:
+    def __init__(self, capacity=10):
         self.table = []
-        for i in range(initial_capacity):
+        for i in range(capacity):
             self.table.append([])
 
     def insert(self, key, item):
@@ -43,7 +43,8 @@ class HashMap:
 
 
 class Package:
-    def __init__(self, package_id, address, city, state, zip_code, deadline, weight, notes, status, time_of_delivery):
+    def __init__(self, package_id, address, city, state, zip_code, deadline, weight, notes, truck_id, status,
+                 time_of_delivery):
         self.package_id = package_id
         self.address = address
         self.city = city
@@ -52,13 +53,15 @@ class Package:
         self.deadline = deadline
         self.weight = weight
         self.notes = notes
+        self.truck_id = truck_id
         self.status = status
         self.time_of_delivery = time_of_delivery
 
     def __str__(self):
-        return '%s, %s, %s, %s, %s, %s, %s, %s, %s' % (self.package_id, self.address, self.city, self.state,
-                                                       self.zip_code, self.deadline, self.weight, self.status,
-                                                       self.time_of_delivery)
+        return 'Package ID: %s  Address: %s, %s %s, %s  Deadline: %s  Weight: %skg  Truck: %s  Status: %s %s' % \
+                                                    (self.package_id, self.address, self.city, self.state,
+                                                     self.zip_code, self.deadline, self.weight, self.truck_id,
+                                                     self.status, self.time_of_delivery)
 
     def __repr__(self):
         return str(self)
@@ -66,6 +69,7 @@ class Package:
 
 class Truck:
     def __init__(self):
+        self.id = None
         self.mph = 18.0
         self.payload = []
         self.time = 8.00
@@ -86,11 +90,12 @@ def package_csv(filename):
             p_deadline = package[5]
             p_weight = package[6]
             p_notes = package[7]
+            p_truck_id = None
             p_status = 'At Hub'
             p_time_of_delivery = None
 
-            p = Package(p_id, p_address, p_city, p_state, p_zip, p_deadline, p_weight, p_notes, p_status,
-                        p_time_of_delivery)
+            p = Package(p_id, p_address, p_city, p_state, p_zip, p_deadline, p_weight, p_notes, p_truck_id,
+                        p_status, p_time_of_delivery)
 
             package_hash.insert(p_id, p)
 
@@ -114,7 +119,7 @@ def update_address(p_id, address, city, state, zip_code):
 
 
 def load_truck(truck, package_ids):
-    for p in range(1, 40):
+    for p in range(1, 41):
 
         if package_hash.search(p).package_id in package_ids:
             truck.payload.append(package_hash.search(p))
@@ -152,85 +157,58 @@ def get_total_mileage():
     return total_mileage
 
 
-def deliver_packages(truck, start_time):
-    truck.end_time = start_time
-    time_counter = convert_hm_time_to_float(start_time)
-    current_location = 0
+def deliver_packages(truck, start_time, end_time):
 
-    for p in range(len(truck.payload)):
-        (package_hash.search(truck.payload[p].package_id)).status = 'In Transit'
-
-    while len(truck.payload) != 0:
-
-        min_distance = 9000.0
-        package_index = None
-        next_location = None
+    if start_time <= end_time:
+        truck.time = start_time
+        stop_time = convert_hm_time_to_float(end_time)
+        time_counter = convert_hm_time_to_float(start_time)
+        current_location = 0
 
         for p in range(len(truck.payload)):
+            (package_hash.search(truck.payload[p].package_id)).status = 'In Transit'
+            (package_hash.search(truck.payload[p].package_id)).truck_id = truck.id
 
-            if get_distance(current_location, address_lookup.get(truck.payload[p].address)) <= min_distance:
-                min_distance = get_distance(current_location, address_lookup.get(truck.payload[p].address))
-                next_location = address_lookup.get(truck.payload[p].address)
-                package_index = p
+        while len(truck.payload) != 0:
 
-        current_location = next_location
-        (package_hash.search(truck.payload[package_index].package_id)).status = 'Delivered'
-        time_counter += (min_distance/truck.mph)
-        truck.end_time = convert_float_time_to_hm(time_counter)
-        (package_hash.search(truck.payload[package_index].package_id)).time_of_delivery = truck.end_time
-        truck.mileage += min_distance
-        truck.payload.pop(package_index)
+            min_distance = 9000.0
+            package_index = None
+            next_location = None
 
-    truck.mileage += get_distance(current_location, 0)
-    truck.end_time = convert_float_time_to_hm(time_counter + (get_distance(current_location, 0) / truck.mph))
+            for p in range(len(truck.payload)):
 
+                if get_distance(current_location, address_lookup.get(truck.payload[p].address)) <= min_distance:
+                    min_distance = get_distance(current_location, address_lookup.get(truck.payload[p].address))
+                    next_location = address_lookup.get(truck.payload[p].address)
+                    package_index = p
 
-def deliver_packages_until_end_time(truck, start_time, end_time):
-    # check end time against start time: if end time is before truck is scheduled to leave, no code is run
-    truck.time = start_time
-    stop_time = convert_hm_time_to_float(end_time)
-    time_counter = convert_hm_time_to_float(start_time)
-    current_location = 0
+            time_counter += (min_distance/truck.mph)
+            if time_counter > stop_time:
+                break
 
-    for p in range(len(truck.payload)):
-        (package_hash.search(truck.payload[p].package_id)).status = 'In Transit'
+            current_location = next_location
+            truck.time = convert_float_time_to_hm(time_counter)
+            (package_hash.search(truck.payload[package_index].package_id)).time_of_delivery = truck.time
+            truck.mileage += min_distance
+            (package_hash.search(truck.payload[package_index].package_id)).status = 'Delivered'
+            truck.payload.pop(package_index)
 
-    while len(truck.payload) != 0:
-
-        min_distance = 9000.0
-        package_index = None
-        next_location = None
-
-        for p in range(len(truck.payload)):
-
-            if get_distance(current_location, address_lookup.get(truck.payload[p].address)) <= min_distance:
-                min_distance = get_distance(current_location, address_lookup.get(truck.payload[p].address))
-                next_location = address_lookup.get(truck.payload[p].address)
-                package_index = p
-
-        time_counter += (min_distance/truck.mph)
-        if time_counter > stop_time:
-            break
-
-        current_location = next_location
-        truck.time = convert_float_time_to_hm(time_counter)
-        (package_hash.search(truck.payload[package_index].package_id)).time_of_delivery = truck.time
-        truck.mileage += min_distance
-        (package_hash.search(truck.payload[package_index].package_id)).status = 'Delivered'
-        truck.payload.pop(package_index)
-
-    if time_counter <= stop_time:
-        truck.mileage += get_distance(current_location, 0)
-        truck.time = convert_float_time_to_hm(time_counter + (get_distance(current_location, 0) / truck.mph))
+        if time_counter <= stop_time:
+            truck.mileage += get_distance(current_location, 0)
+            truck.time = convert_float_time_to_hm(time_counter + (get_distance(current_location, 0) / truck.mph))
 
 
-package_hash = HashMap()
+package_hash = HashTable()
 
 address_lookup = {}
 
 truck_1 = Truck()
 truck_2 = Truck()
 truck_3 = Truck()
+
+truck_1.id = 1
+truck_2.id = 2
+truck_3.id = 3
 
 distance_table = list(csv.reader(open('distance.csv', encoding='utf-8-sig')))
 
@@ -244,48 +222,95 @@ class Main:
 
     update_address(9, '410 S State St', 'Salt Lake City', 'UT', '84111')
 
-    load_truck(truck_1, {1, 2, 8, 13, 14, 15, 16, 20, 21, 27, 30, 34, 35, 39, 40})
+    load_truck(truck_1, {1, 2, 8, 13, 14, 15, 16, 19, 20, 21, 27, 30, 34, 35, 39, 40})
     load_truck(truck_2, {3, 5, 6, 7, 12, 18, 25, 26, 29, 31, 32, 36, 37, 38})
-    load_truck(truck_3, {4, 9, 10, 11, 17, 19, 22, 23, 24, 28, 33})
+    load_truck(truck_3, {4, 9, 10, 11, 17, 22, 23, 24, 28, 33})
 
-    truck_1.time = '08:00'
-    truck_2.time = '09:06'
-    truck_3.time = '10:30'
+    deliver_packages(truck_1, '08:00', '23:59')
+    deliver_packages(truck_2, '09:06', '23:59')
+    deliver_packages(truck_3, '10:30', '23:59')
 
-    deliver_packages(truck_1, '08:00')
-    deliver_packages(truck_2, '09:06')
-    deliver_packages(truck_3, '10:30')
     start = None
-
     while start != '0':
+
         print('Welcome to WGUPS package tracking')
         print('All deliveries were completed in ', "{0:.2f}".format(get_total_mileage(), 2), 'miles.')
         print('Please enter a number from the following menu')
+
         start = input(
             '1 - Package lookup \n2 - View status of all packages at a specific time \n0 - exit the program\n\n')
+
         if start == '1':
             p_id = input('Enter the package ID: ')
+
+            try:
+                test = int(p_id)
+            except:
+                print('Only integer values are accepted')
+                exit()
+
+            if int(p_id) <= 0:
+                print('Only positive values are accepted')
+                exit()
+
+            if package_hash.search(int(p_id)) is None:
+                print('Package not Found')
+                exit()
+
+            end_time = input('\nEnter a time in military time (HH:MM): ')
+
+            try:
+                test = convert_hm_time_to_float(end_time)
+            except:
+                print('Incorrect time format')
+                exit()
+
+            if not (0.0 <= (convert_hm_time_to_float(end_time)) <= 24.0):
+                print('Time out of range')
+                exit()
+
+            load_truck(truck_1, {1, 2, 8, 13, 14, 15, 16, 19, 20, 21, 27, 30, 34, 35, 39, 40})
+            load_truck(truck_2, {3, 5, 6, 7, 12, 18, 25, 26, 29, 31, 32, 36, 37, 38})
+            load_truck(truck_3, {4, 9, 10, 11, 17, 22, 23, 24, 28, 33})
+
+            for p in range(1, 41):
+                package_hash.search(p).status = 'At Hub'
+                package_hash.search(p).time_of_delivery = ''
+
+            deliver_packages(truck_1, '08:00', end_time)
+            deliver_packages(truck_2, '09:06', end_time)
+            deliver_packages(truck_3, '10:30', end_time)
 
             print(package_hash.search(int(p_id)))
             exit()
 
         if start == '2':
             end_time = input('Enter a time in military time (HH:MM): ')
-            # time mechanism still needs to be developed
-            load_truck(truck_1, {1, 2, 8, 13, 14, 15, 16, 20, 21, 27, 30, 34, 35, 39, 40})
-            load_truck(truck_2, {3, 5, 6, 7, 12, 18, 25, 26, 29, 31, 32, 36, 37, 38})
-            load_truck(truck_3, {4, 9, 10, 11, 17, 19, 22, 23, 24, 28, 33})
 
-            for p in range(1, 40):
+            try:
+                test = convert_hm_time_to_float(end_time)
+            except:
+                print('Incorrect time format')
+                exit()
+
+            if not (0.0 <= (convert_hm_time_to_float(end_time)) <= 24.0):
+                print('Time out of range')
+                exit()
+
+            load_truck(truck_1, {1, 2, 8, 13, 14, 15, 16, 19, 20, 21, 27, 30, 34, 35, 39, 40})
+            load_truck(truck_2, {3, 5, 6, 7, 12, 18, 25, 26, 29, 31, 32, 36, 37, 38})
+            load_truck(truck_3, {4, 9, 10, 11, 17, 22, 23, 24, 28, 33})
+
+            for p in range(1, 41):
                 package_hash.search(p).status = 'At Hub'
                 package_hash.search(p).time_of_delivery = ''
 
-            deliver_packages_until_end_time(truck_1, '08:00', end_time)
-            deliver_packages_until_end_time(truck_2, '09:06', end_time)
-            deliver_packages_until_end_time(truck_3, '10:30', end_time)
+            deliver_packages(truck_1, '08:00', end_time)
+            deliver_packages(truck_2, '09:06', end_time)
+            deliver_packages(truck_3, '10:30', end_time)
 
-            for i in range(1, 40):
-                print(package_hash.search(i))
+            for p in range(1, 41):
+                print(package_hash.search(p))
 
             exit()
 
