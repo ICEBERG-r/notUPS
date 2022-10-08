@@ -4,14 +4,13 @@ import csv
 import datetime
 
 
-# Hash-map - copied from lecture, may need to make more original
-# O(1)
 class HashTable:
     def __init__(self, capacity=10):
         self.table = []
         for i in range(capacity):
             self.table.append([])
 
+    # O(N) inserts a package into the hash table
     def insert(self, key, item):
         bucket = hash(key) % len(self.table)
         bucket_list = self.table[bucket]
@@ -25,6 +24,7 @@ class HashTable:
         bucket_list.append(key_value)
         return True
 
+    # O(N) Returns a value from the hash table
     def search(self, key):
         bucket = hash(key) % len(self.table)
         bucket_list = self.table[bucket]
@@ -34,6 +34,7 @@ class HashTable:
                 return kv[1]
         return None
 
+    # O(N) deletes a value from the hash table
     def remove(self, key):
         bucket = hash(key) % len(self.table)
         bucket_list = self.table[bucket]
@@ -43,7 +44,6 @@ class HashTable:
                 bucket_list.remove([kv[0], kv[1]])
 
 
-# O(1)
 class Package:
     def __init__(self, package_id, address, city, state, zip_code, deadline, weight, notes, truck_id, status,
                  time_of_delivery):
@@ -69,7 +69,6 @@ class Package:
         return str(self)
 
 
-# O(1)
 class Truck:
     def __init__(self):
         self.id = None
@@ -131,7 +130,7 @@ def update_address(p_id, address, city, state, zip_code):
     package.zip_code = zip_code
 
 
-# O(1) Loads the packages into the truck's payload array
+# O(N) Loads the packages into the truck's payload array
 # Parameter: truck: a Truck object
 #            package_ids: a set of package ids
 def load_truck(truck, package_ids):
@@ -166,31 +165,23 @@ def convert_hm_time_to_float(time_hms):
     return hours + minutes
 
 
-# O(N) Iterates through a truck's payload to determine the shortest distance from the given location
-# Parameter: truck: a Truck object
-#            start_location: the location id of the starting location
-def get_min_distance(truck, start_location):
-    min_distance = 9000.0
-    for p in range(len(truck.payload)):
-        if get_distance(start_location, address_lookup.get(truck.payload[p].address)) <= min_distance:
-            min_distance = get_distance(start_location, address_lookup.get(truck.payload[p].address))
-
-    return min_distance
-
-
 # O(1) Returns the total mileage of all trucks
 def get_total_mileage():
     total_mileage = truck_1.mileage + truck_2.mileage + truck_3.mileage
     return total_mileage
 
 
-# O(N^2)
+# O(N^2) The following is a 'Greedy Algorithm' approach to delivering the packages
+# Parameters: truck: a Truck object
+#             start_time: the time that the truck leaves the hub, in 'HH:MM' format
+#             end_time: the time that all deliveries should cease, in 'HH:MM' format
 def deliver_packages(truck, start_time, end_time):
+    stop_time = convert_hm_time_to_float(end_time)
+    time_counter = convert_hm_time_to_float(start_time)
 
-    if start_time <= end_time:
+    if time_counter <= stop_time:
         truck.time = start_time
-        stop_time = convert_hm_time_to_float(end_time)
-        time_counter = convert_hm_time_to_float(start_time)
+
         current_location = 0
 
         for p in range(len(truck.payload)):
@@ -226,29 +217,36 @@ def deliver_packages(truck, start_time, end_time):
             truck.time = convert_float_time_to_hm(time_counter + (get_distance(current_location, 0) / truck.mph))
 
 
+# O(1): creates an instance of the hash table to store the packages
 package_hash = HashTable()
 
+# O(1): creates a dictionary to hold the address lookup table, in which the address is the key that is paired with its
+# corresponding index in the distance table
 address_lookup = {}
 
+# O(1): creates the three truck objects that will deliver the packages
 truck_1 = Truck()
 truck_2 = Truck()
 truck_3 = Truck()
 
+# O(1): sets the ID number for the truck in question for better output readability
 truck_1.id = 1
 truck_2.id = 2
 truck_3.id = 3
 
-# instantiates the distance table from a csv file
+# O(N) instantiates the distance table from a csv file
 distance_table = list(csv.reader(open('distance.csv', encoding='utf-8-sig')))
 
 package_csv('packages.csv')
 address_csv('address.csv')
 
 
+# O(1) This class holds the main program and the console UI
 class Main:
     def __init__(self):
         pass
 
+    #
     load_truck(truck_1, {1, 2, 8, 13, 14, 15, 16, 19, 20, 21, 27, 30, 34, 35, 39, 40})
     load_truck(truck_2, {3, 5, 6, 7, 12, 18, 25, 26, 29, 31, 32, 36, 37, 38})
     load_truck(truck_3, {4, 9, 10, 11, 17, 22, 23, 24, 28, 33})
@@ -261,7 +259,6 @@ class Main:
     deliver_packages(truck_2, '09:06', '23:59')
     deliver_packages(truck_3, '10:30', '23:59')
 
-    # The UI
     start = None
 
     print('Welcome to WGUPS package tracking')
@@ -288,7 +285,7 @@ class Main:
             print('Package not Found')
             exit()
 
-        end_time = input('\nEnter a time in military time (HH:MM): ')
+        end_time = input('\nEnter a time in military time (HH:MM) between 00:00 and 24:00: ')
 
         try:
             test = convert_hm_time_to_float(end_time)
@@ -316,7 +313,7 @@ class Main:
         exit()
 
     if start == '2':
-        end_time = input('Enter a time in military time (HH:MM): ')
+        end_time = input('Enter a time in military time (HH:MM) between 00:00 and 24:00: ')
 
         try:
             test = convert_hm_time_to_float(end_time)
