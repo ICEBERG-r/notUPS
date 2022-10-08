@@ -180,28 +180,39 @@ def get_total_mileage():
 
 # O(N^2) The following is a 'Greedy Algorithm' approach to delivering the packages
 # Parameters: truck: a Truck object
-#             start_time: the time that the truck leaves the hub, in 'HH:MM' format
 #             end_time: the time that all deliveries should cease, in 'HH:MM' format
+#
+# Base Case: length of truck.payload[] = 0
+# Space Time: O(N^2)
 def deliver_packages(truck, end_time):
 
+    # sets the time counter to the truck's designated start time, which is stored in truck.time
     time_counter = truck.time
 
+    # if the start time is after the given end time, the function exits here and no packages are delivered
     if time_counter <= end_time:
 
+        # sets the current location to the location id for the hub, which is 0
         current_location = 0
 
+        # sets the status for all packages as 'In Transit' and logs the truck ID for each package
         for p in range(len(truck.payload)):
 
             package = package_hash.search(truck.payload[p].package_id)
             package.status = 'In Transit'
             package.truck_id = truck.id
 
-        while len(truck.payload) != 0:
+        # the delivery algorithm continues as long as there are packages in the truck
+        while len(truck.payload) > 0:
 
+            # min_distance is set to a higher than possible value, so the first calculated distance will always be less
+            # the values will be reset at the beginning of each iteration through the while loop
             min_distance = 9000.0
             package_index = None
             next_location = None
 
+            # iterates through the list of packages to find the minimum distance to the next location
+            # also logs the location id and the package index associated with that minimum distance
             for p in range(len(truck.payload)):
                 package = truck.payload[p]
                 if get_distance(current_location, address_lookup.get(package.address)) <= min_distance:
@@ -209,22 +220,30 @@ def deliver_packages(truck, end_time):
                     next_location = address_lookup.get(package.address)
                     package_index = p
 
+            # created variable for better readability
             delivered_package = (package_hash.search(truck.payload[package_index].package_id))
 
+            # adds the calculated time for delivery to next location to the time counter.
+            # if the time counter is greater than the end time, the loop is exited.
+            # the current package is not delivered.
             time_counter += (min_distance/truck.mph)
             if time_counter > end_time:
                 break
 
+            # sets the new current location as the location of the package with the min_distance
             current_location = next_location
-            truck.time = time_counter
-            delivered_package.time_of_delivery = convert_float_time_to_hm(truck.time)
+            # sets the time of delivery to the current time
+            delivered_package.time_of_delivery = convert_float_time_to_hm(time_counter)
+            # adds the minimum distance to the total truck mileage
             truck.mileage += min_distance
+            # sets the package status as 'Delivered'
             delivered_package.status = 'Delivered'
+            # removes the package from the truck's payload
             truck.payload.pop(package_index)
 
+        # If all packages are delivered before the end time, the distance back to the hub is added to the mileage
         if time_counter <= end_time:
             truck.mileage += get_distance(current_location, 0)
-            truck.time = time_counter + float(get_distance(current_location, 0) / truck.mph)
 
 
 # O(1): creates an instance of the hash table to store the packages
@@ -261,7 +280,7 @@ class Main:
     truck_2.time = convert_hm_time_to_float('09:06')
     truck_3.time = convert_hm_time_to_float('10:30')
 
-    #
+    # Each truck is loaded manually
     load_truck(truck_1, {1, 2, 8, 13, 14, 15, 16, 19, 20, 21, 27, 30, 34, 35, 39, 40})
     load_truck(truck_2, {3, 5, 6, 7, 12, 18, 25, 26, 29, 31, 32, 36, 37, 38})
     load_truck(truck_3, {4, 9, 10, 11, 17, 22, 23, 24, 28, 33})
@@ -270,6 +289,7 @@ class Main:
     # The package is loaded on Truck 3 which does not leave until 10:30 AM.
     update_address(9, '410 S State St', 'Salt Lake City', 'UT', '84111')
 
+    # converting the 'end time' - EOD - to a float
     end_time = convert_hm_time_to_float('23:59')
 
     deliver_packages(truck_1, end_time)
@@ -286,48 +306,58 @@ class Main:
     if start == '1':
         p_id = input('Enter the package ID: ')
 
+        # tests whether the input is an integer
         try:
-            test = int(p_id)
+            p_id = int(p_id)
         except:
             print('Only integer values are accepted')
             exit()
 
-        if int(p_id) <= 0:
+        # checks for a positive integer
+        if p_id <= 0:
             print('Only positive values are accepted')
             exit()
 
-        if package_hash.search(int(p_id)) is None:
+        # prints an error if the package id is not in the hash table
+        if package_hash.search(p_id) is None:
             print('Package not Found')
             exit()
 
         end_time = input('\nEnter a time in military time (HH:MM) between 00:00 and 24:00: ')
 
+        # converts the input to a float. exits the program if the process fails
         try:
             end_time = convert_hm_time_to_float(end_time)
         except:
             print('Incorrect time format')
             exit()
 
+        # checks if the time is in the proper range
         if not (0.0 <= end_time <= 24.0):
             print('Time out of range')
             exit()
 
+        # reloading the trucks
         load_truck(truck_1, {1, 2, 8, 13, 14, 15, 16, 19, 20, 21, 27, 30, 34, 35, 39, 40})
         load_truck(truck_2, {3, 5, 6, 7, 12, 18, 25, 26, 29, 31, 32, 36, 37, 38})
         load_truck(truck_3, {4, 9, 10, 11, 17, 22, 23, 24, 28, 33})
 
+        # Resets the package status and time of delivery
         for p in range(1, 41):
             package = package_hash.search(p)
             package.status = 'At Hub'
             package.time_of_delivery = ''
 
+        # re-delivering packages
         deliver_packages(truck_1, end_time)
         deliver_packages(truck_2, end_time)
         deliver_packages(truck_3, end_time)
 
-        print(package_hash.search(int(p_id)))
+        # prints information for the given package
+        print(package_hash.search(p_id))
         exit()
 
+        # identical to the option above, except it doesn't ask for a specific package and the output is all packages
     if start == '2':
         end_time = input('Enter a time in military time (HH:MM) between 00:00 and 24:00: ')
 
@@ -358,6 +388,7 @@ class Main:
 
         exit()
 
+    # checks for an invalid input
     if start not in ['1', '2', '0']:
         print('Incorrect selection\n')
         exit()
