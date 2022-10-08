@@ -1,7 +1,0 @@
-Hash - DONE (for now, might need to adjust for ORIGINALITY later, i dunno maybe use linked lists instead of chaining or something)
-Package loading from CSV - DONE
-Load packages onto trucks - DONE
-use greedy approach? nearest neighbor? - DONE - using greedy cuz i'm greedy about my time
-incorporate distance table (from csv?) - DONE
-    - yes, from csv. use an if statement - if [row] [col] is blank, use [col] [row] instead
-Deliver packages - Develop system for timetracking trucks using builtin datetime library
