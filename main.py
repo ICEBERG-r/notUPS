@@ -179,7 +179,7 @@ def get_total_mileage():
 
 
 # O(N^2) The following is a 'Greedy Algorithm' approach to delivering the packages
-# Parameters: truck: a Truck object
+# Parameter: truck: a Truck object
 #             end_time: the time that all deliveries should cease, in 'HH:MM' format
 #
 # Base Case: length of truck.payload[] = 0
@@ -395,5 +395,4 @@ class Main:
 
     print('Goodbye!')
     exit()
-
 
